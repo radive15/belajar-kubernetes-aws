@@ -34,20 +34,20 @@ spec:
         volumeMounts:
           - name: web-storage        # harus sama dengan nama di volumes atas
             mountPath: /data         # lokasi mount di dalam container
-        livenessProbe:
+        livenessProbe:          # kalau gagal → pod di-RESTART otomatis (deteksi pod hang/crash)
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          failureThreshold: 3
-        readinessProbe:
+          initialDelaySeconds: 10  # tunggu 10 detik sebelum mulai cek (kasih waktu app start)
+          periodSeconds: 10        # cek setiap 10 detik
+          failureThreshold: 3      # restart setelah 3x gagal berturut-turut
+        readinessProbe:         # kalau gagal → pod KELUAR dari load balancer, tapi tidak di-restart
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 5
+          initialDelaySeconds: 5   # cek lebih cepat — deteksi kapan pod siap terima traffic
           periodSeconds: 5
-          failureThreshold: 3
+          failureThreshold: 3      # keluarkan dari Service setelah 3x gagal
         env:
           - name: APP_ENV
             valueFrom:
