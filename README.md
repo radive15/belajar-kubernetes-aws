@@ -62,7 +62,7 @@ Repo ini mendokumentasikan perjalanan belajar Kubernetes secara hands-on, mulai 
 - [x] Persistent Volume & PVC
 - [x] Liveness & readiness probe
 - [x] Resource requests & limits
-- [ ] Ingress + Nginx Ingress Controller
+- [x] Ingress + Nginx Ingress Controller
 - [ ] DNS di dalam cluster
 - [ ] Horizontal Pod Autoscaler (HPA)
 - [ ] DaemonSet & StatefulSet
