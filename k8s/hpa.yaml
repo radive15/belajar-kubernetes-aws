@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-app-hpa
+  namespace: dev
+  labels:
+    app: web-app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-app              # Deployment yang akan di-scale
+  minReplicas: 2               # minimum pod — tidak boleh kurang dari ini
+  maxReplicas: 5               # maksimum pod — tidak boleh lebih dari ini
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50  # scale up kalau rata-rata CPU usage > 50%
