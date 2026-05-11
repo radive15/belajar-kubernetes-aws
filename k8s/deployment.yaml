@@ -20,10 +20,40 @@ spec:
         image: nginx:1.25
         resources:
           requests:
-              cpu: "100m"
-              memory: "64Mi"
+            cpu: "100m"
+            memory: "64Mi"
           limits:
-              cpu: "200m"
-              memory: "128Mi"
+            cpu: "200m"
+            memory: "128Mi"
         ports:
         - containerPort: 80
+        env:
+          # Ambil dari ConfigMap
+          - name: APP_ENV
+            valueFrom:
+              configMapKeyRef:
+                name: web-app-config    # nama ConfigMap
+                key: APP_ENV            # key di dalam ConfigMap
+          - name: APP_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: web-app-config
+                key: APP_PORT
+          - name: APP_LOG_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: web-app-config
+                key: APP_LOG_LEVEL
+          # Ambil dari Secret (meski Secret belum di-apply, referensinya sudah siap)
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: web-app-secret    # nama Secret
+                key: DB_PASSWORD
+                optional: true          # pod tetap jalan meski Secret belum ada
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: web-app-secret
+                key: DB_USER
+                optional: true
