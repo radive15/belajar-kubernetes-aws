@@ -27,6 +27,20 @@ spec:
             memory: "128Mi"
         ports:
         - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /              # endpoint yang dicek
+            port: 80
+          initialDelaySeconds: 10  # tunggu 10 detik sebelum mulai cek (kasih waktu app start)
+          periodSeconds: 10        # cek setiap 10 detik
+          failureThreshold: 3      # restart pod setelah 3x gagal berturut-turut
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5   # cek lebih cepat dari liveness
+          periodSeconds: 5
+          failureThreshold: 3      # keluarkan dari Service setelah 3x gagal
         env:
           # Ambil dari ConfigMap
           - name: APP_ENV
