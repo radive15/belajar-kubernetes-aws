@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  namespace: dev
+  labels:
+    app: web-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /   # teruskan request ke / meski path-nya berbeda
+spec:
+  ingressClassName: nginx                            # pakai controller nginx yang baru di-install
+  rules:
+    - http:
+        paths:
+          - path: /                                  # semua request ke / diteruskan ke service ini
+            pathType: Prefix
+            backend:
+              service:
+                name: web-app-svc                   # nama Service yang sudah ada
+                port:
+                  number: 80
