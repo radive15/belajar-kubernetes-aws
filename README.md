@@ -13,7 +13,7 @@ Repo ini mendokumentasikan perjalanan belajar Kubernetes secara hands-on, mulai 
 
 | Layer | Tool |
 |---|---|
-| Local cluster | Docker Desktop (Kubernetes built-in) |
+| Local cluster | kind (Kubernetes in Docker) |
 | Container registry (lokal) | Docker Hub |
 | Cloud cluster | AWS EKS |
 | Cloud registry | AWS ECR |
@@ -40,28 +40,28 @@ Repo ini mendokumentasikan perjalanan belajar Kubernetes secara hands-on, mulai 
 
 ---
 
-### Fase 2 — Kubernetes Lokal: Konsep Dasar `[LOKAL]`
+### Fase 2 — Kubernetes Lokal: Konsep Dasar `[LOKAL]` ✅
 > Paham core Kubernetes dengan hands-on
 
-- [ ] Enable Kubernetes di Docker Desktop
-- [ ] Verifikasi: `kubectl cluster-info` & `kubectl get nodes`
-- [ ] Pod, Node, Cluster — bedanya dengan Docker container
-- [ ] Manifest YAML pertama: deploy Pod sederhana
-- [ ] Deployment & ReplicaSet
-- [ ] Service — ClusterIP, NodePort, LoadBalancer
-- [ ] Namespace — isolasi dev/staging
-- [ ] ConfigMap & Secret
+- [x] Enable Kubernetes — pakai kind cluster
+- [x] Verifikasi: `kubectl cluster-info` & `kubectl get nodes`
+- [x] Pod, Node, Cluster — bedanya dengan Docker container
+- [x] Manifest YAML pertama: deploy Pod sederhana
+- [x] Deployment & ReplicaSet
+- [x] Service — NodePort + `kubectl port-forward`
+- [x] Namespace — isolasi dev/staging
+- [x] ConfigMap & Secret
 
-**Checkpoint**: FastAPI di Kubernetes lokal — Deployment + Service + ConfigMap + Secret ✓
+**Checkpoint**: nginx di Kubernetes lokal — Deployment + Service + ConfigMap + Secret ✅
 
 ---
 
-### Fase 3 — Kubernetes Lokal: Intermediate `[LOKAL]`
+### Fase 3 — Kubernetes Lokal: Intermediate `[LOKAL]` 🔄
 > Storage, health checks, autoscaling, observability
 
-- [ ] Persistent Volume & PVC
-- [ ] Liveness & readiness probe
-- [ ] Resource requests & limits
+- [x] Persistent Volume & PVC
+- [x] Liveness & readiness probe
+- [x] Resource requests & limits
 - [ ] Ingress + Nginx Ingress Controller
 - [ ] DNS di dalam cluster
 - [ ] Horizontal Pod Autoscaler (HPA)
@@ -136,26 +136,16 @@ Repo ini mendokumentasikan perjalanan belajar Kubernetes secara hands-on, mulai 
 belajar-kubernetes/
 ├── README.md
 ├── .gitignore
-├── fase-1-docker/          # Docker & Docker Compose
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   └── docker-compose.yml
-├── fase-2-k8s-dasar/       # Manifest Kubernetes dasar
-│   └── k8s/
-├── fase-3-k8s-intermediate/ # Storage, HPA, Ingress
-│   └── k8s/
-├── fase-4-helm-monitoring/  # Helm charts + Prometheus/Grafana
-│   ├── helm/
-│   └── monitoring/
-├── fase-5-eks/             # EKS deployment
-│   └── k8s/
-├── fase-6-cicd/            # GitHub Actions + ArgoCD
-│   └── .github/workflows/
-└── fase-7-terraform/       # IaC
-    └── terraform/
+└── k8s/                        # Manifest Kubernetes (Fase 2 & 3)
+    ├── namespace.yaml           # Namespace: dev
+    ├── configmap.yaml           # ConfigMap: env vars non-sensitif
+    ├── secret.yaml.example      # Secret template (nilai asli jangan di-commit!)
+    ├── deployment.yaml          # Deployment nginx — resource limits, probe, env injection
+    ├── service.yaml             # Service NodePort
+    └── pvc.yaml                 # PersistentVolumeClaim 100Mi
 ```
+
+> Folder `helm/`, `monitoring/`, dan `terraform/` akan ditambahkan sesuai fase belajar.
 
 ---
 
@@ -163,20 +153,40 @@ belajar-kubernetes/
 
 ### Prasyarat
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — aktifkan Kubernetes di Settings
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) — biasanya sudah terinstall bersama Docker Desktop
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) — Kubernetes in Docker
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/) — dibutuhkan mulai Fase 4
 
-### Verifikasi Kubernetes Lokal
+### Buat Cluster kind
 
 ```bash
-# Pastikan cluster berjalan
+kind create cluster --name belajar-k8s
+```
+
+### Deploy ke Cluster
+
+```bash
+# Apply semua manifest sekaligus
+kubectl apply -f k8s/
+
+# Verifikasi
+kubectl get all -n dev
+
+# Akses app di browser (port-forward karena kind tidak support NodePort langsung)
+kubectl port-forward service/web-app-svc 8080:80 -n dev
+# Buka: http://localhost:8080
+```
+
+### Verifikasi Cluster
+
+```bash
 kubectl cluster-info
 kubectl get nodes
 
 # Harus muncul satu node dengan status Ready
-# NAME             STATUS   ROLES           AGE
-# docker-desktop   Ready    control-plane   ...
+# NAME                       STATUS   ROLES           AGE
+# belajar-k8s-control-plane  Ready    control-plane   ...
 ```
 
 ---
