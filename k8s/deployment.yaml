@@ -15,6 +15,10 @@ spec:
       labels:
         app: web-app
     spec:
+      volumes:
+        - name: web-storage          # nama volume (internal, bebas)
+          persistentVolumeClaim:
+            claimName: web-app-pvc   # harus sama dengan nama PVC yang dibuat
       containers:
       - name: web-app
         image: nginx:1.25
@@ -27,27 +31,29 @@ spec:
             memory: "128Mi"
         ports:
         - containerPort: 80
+        volumeMounts:
+          - name: web-storage        # harus sama dengan nama di volumes atas
+            mountPath: /data         # lokasi mount di dalam container
         livenessProbe:
           httpGet:
-            path: /              # endpoint yang dicek
+            path: /
             port: 80
-          initialDelaySeconds: 10  # tunggu 10 detik sebelum mulai cek (kasih waktu app start)
-          periodSeconds: 10        # cek setiap 10 detik
-          failureThreshold: 3      # restart pod setelah 3x gagal berturut-turut
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 5   # cek lebih cepat dari liveness
+          initialDelaySeconds: 5
           periodSeconds: 5
-          failureThreshold: 3      # keluarkan dari Service setelah 3x gagal
+          failureThreshold: 3
         env:
-          # Ambil dari ConfigMap
           - name: APP_ENV
             valueFrom:
               configMapKeyRef:
-                name: web-app-config    # nama ConfigMap
-                key: APP_ENV            # key di dalam ConfigMap
+                name: web-app-config
+                key: APP_ENV
           - name: APP_PORT
             valueFrom:
               configMapKeyRef:
@@ -58,13 +64,12 @@ spec:
               configMapKeyRef:
                 name: web-app-config
                 key: APP_LOG_LEVEL
-          # Ambil dari Secret (meski Secret belum di-apply, referensinya sudah siap)
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: web-app-secret    # nama Secret
+                name: web-app-secret
                 key: DB_PASSWORD
-                optional: true          # pod tetap jalan meski Secret belum ada
+                optional: true
           - name: DB_USER
             valueFrom:
               secretKeyRef:

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: web-app-pvc             # nama yang direferensikan di Deployment
+  namespace: dev
+  labels:
+    app: web-app
+spec:
+  accessModes:
+    - ReadWriteOnce             # satu pod bisa baca & tulis (cocok untuk single-node)
+  resources:
+    requests:
+      storage: 100Mi            # minta 100 MB storage
+  # storageClassName tidak perlu ditulis — otomatis pakai "standard" (default)
