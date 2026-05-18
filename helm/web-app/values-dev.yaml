@@ -1,0 +1,16 @@
+# helm/web-app/values-dev.yaml
+# Override khusus environment dev — field yang tidak ada di sini
+# otomatis pakai nilai dari values.yaml
+
+replicaCount: 1  # dev tidak perlu 2 replica, hemat resource
+
+resources:
+  requests:
+    cpu: "50m"     # default: 100m — dev pakai lebih kecil
+    memory: "64Mi" # default: 128Mi
+  limits:
+    cpu: "200m"    # default: 500m
+    memory: "128Mi" # default: 256Mi
+
+autoscaling:
+  enabled: false   # default: true — dev tidak perlu autoscale

@@ -1,0 +1,18 @@
+# helm/web-app/values-prod.yaml
+# Override khusus environment prod — lebih besar, autoscaling aktif
+
+replicaCount: 3  # minimum 3 untuk high availability
+
+resources:
+  requests:
+    cpu: "200m"      # default: 100m — prod butuh lebih banyak guaranteed resource
+    memory: "256Mi"  # default: 128Mi
+  limits:
+    cpu: "1000m"     # default: 500m — 1 full core
+    memory: "512Mi"  # default: 256Mi
+
+autoscaling:
+  enabled: true                    # default: true — tetap aktif
+  minReplicas: 3                   # default: 2 — prod tidak boleh di bawah 3
+  maxReplicas: 10                  # default: 5 — prod boleh scale lebih tinggi
+  targetCPUUtilizationPercentage: 60  # default: 50 — sedikit lebih longgar

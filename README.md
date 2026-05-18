@@ -78,7 +78,7 @@ Repo ini mendokumentasikan perjalanan belajar Kubernetes secara hands-on, mulai 
 - [x] Helm: install, upgrade
 - [x] Buat Helm chart sendiri — FastAPI Todo API
 - [x] Deploy app via `helm install` ke namespace dev
-- [ ] Multi-environment: `values-dev.yaml`, `values-prod.yaml`
+- [x] Multi-environment: `values-dev.yaml` (1 replica, HPA off) + `values-prod.yaml` (3 replica, HPA on)
 - [ ] Deploy Prometheus + Grafana (via Helm)
 - [ ] Scrape metrics FastAPI (`/metrics` endpoint)
 - [ ] Grafana dashboard sederhana
@@ -154,7 +154,9 @@ belajar-kubernetes/
 └── helm/                        # Helm chart (Fase 4)
     └── web-app/
         ├── Chart.yaml           # Metadata chart
-        ├── values.yaml          # Default values (prod)
+        ├── values.yaml          # Default values — base untuk semua environment
+        ├── values-dev.yaml      # Override dev: 1 replica, resource kecil, HPA off
+        ├── values-prod.yaml     # Override prod: 3 replica, resource besar, HPA on
         └── templates/           # Template manifest K8s
 ```
 
@@ -192,11 +194,23 @@ kubectl port-forward service/web-app-svc 8080:80 -n dev
 ### Deploy via Helm (Fase 4)
 
 ```bash
-# Install
+# Install pertama kali
 helm install todo-api ./helm/web-app --namespace dev
 
-# Upgrade setelah ada perubahan values
-helm upgrade todo-api ./helm/web-app --namespace dev
+# Upgrade dengan values dev (1 replica, HPA off, resource kecil)
+helm upgrade todo-api ./helm/web-app --namespace dev -f helm/web-app/values-dev.yaml
+
+# Upgrade dengan values prod (3 replica, HPA on, resource besar)
+helm upgrade todo-api ./helm/web-app --namespace prod -f helm/web-app/values-prod.yaml
+
+# Dry-run sebelum apply (verifikasi tanpa mengubah cluster)
+helm upgrade todo-api ./helm/web-app --namespace dev -f helm/web-app/values-dev.yaml --dry-run=client
+
+# Lihat history upgrade
+helm history todo-api -n dev
+
+# Rollback ke revision sebelumnya
+helm rollback todo-api -n dev
 
 # Akses app
 kubectl port-forward svc/todo-api 8000:8000 -n dev
