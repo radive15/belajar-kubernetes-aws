@@ -79,11 +79,11 @@ Repo ini mendokumentasikan perjalanan belajar Kubernetes secara hands-on, mulai 
 - [x] Buat Helm chart sendiri — FastAPI Todo API
 - [x] Deploy app via `helm install` ke namespace dev
 - [x] Multi-environment: `values-dev.yaml` (1 replica, HPA off) + `values-prod.yaml` (3 replica, HPA on)
-- [ ] Deploy Prometheus + Grafana (via Helm)
-- [ ] Scrape metrics FastAPI (`/metrics` endpoint)
-- [ ] Grafana dashboard sederhana
+- [x] Deploy Prometheus + Grafana via Helm (`kube-prometheus-stack`)
+- [x] Scrape metrics FastAPI — expose `/metrics` + ServiceMonitor
+- [ ] Grafana dashboard sederhana (in progress — eksplorasi)
 
-**Checkpoint**: Stack monitoring + Helm chart yang bisa deploy ke environment berbeda ✓
+**Checkpoint**: Stack monitoring (Prometheus + Grafana) jalan di lokal + Helm chart multi-environment ✅
 
 ---
 
@@ -150,7 +150,8 @@ belajar-kubernetes/
 │   ├── pvc.yaml                 # PersistentVolumeClaim 100Mi
 │   ├── ingress.yaml             # Ingress Nginx
 │   ├── hpa.yaml                 # HPA — scale CPU > 50%
-│   └── statefulset-postgres.yaml # PostgreSQL StatefulSet + headless service
+│   ├── statefulset-postgres.yaml # PostgreSQL StatefulSet + headless service
+│   └── servicemonitor.yaml      # ServiceMonitor — Prometheus scrape todo-api /metrics
 └── helm/                        # Helm chart (Fase 4)
     └── web-app/
         ├── Chart.yaml           # Metadata chart
@@ -215,6 +216,37 @@ helm rollback todo-api -n dev
 # Akses app
 kubectl port-forward svc/todo-api 8000:8000 -n dev
 # Buka: http://localhost:8000/docs
+```
+
+### Deploy Monitoring Stack (Fase 4)
+
+```bash
+# Tambah repo Prometheus Community
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Buat namespace monitoring
+kubectl create namespace monitoring
+
+# Install Prometheus + Grafana + Alertmanager sekaligus
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --set grafana.adminPassword="admin123" \
+  --set prometheus.prometheusSpec.retention="3d"
+
+# Verifikasi semua pod Running
+kubectl get pods -n monitoring
+
+# Akses Grafana (login: admin / admin123)
+kubectl port-forward svc/prometheus-grafana 3000:80 -n monitoring
+# Buka: http://localhost:3000
+
+# Akses Prometheus UI
+kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 -n monitoring
+# Buka: http://localhost:9090
+
+# Apply ServiceMonitor agar Prometheus scrape todo-api
+kubectl apply -f k8s/servicemonitor.yaml
 ```
 
 ### Verifikasi Cluster

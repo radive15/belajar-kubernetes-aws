@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-api
+  namespace: monitoring        # harus di namespace monitoring
+  labels:
+    release: prometheus        # label ini WAJIB — operator cari label ini
+spec:
+  namespaceSelector:
+    matchNames:
+      - dev                    # scrape service di namespace dev
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: todo-api   # cocokkan dengan label service todo-api
+  endpoints:
+    - port: http               # nama port di Service (bukan angka)
+      path: /metrics
+      interval: 15s            # scrape setiap 15 detik
